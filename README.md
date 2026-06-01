@@ -20,6 +20,12 @@ Author: Sarala Biswal &nbsp;·&nbsp; Repository: `agentic-regulated-decisioning`
 ![Ollama](https://img.shields.io/badge/Ollama-local--LLM-000000?style=flat)
 ![Docker](https://img.shields.io/badge/Docker-compose-2496ED?style=flat&logo=docker&logoColor=white)
 
+![Insurance](https://img.shields.io/badge/Insurance-P%26C%20Underwriting-1A5C8A?style=flat)
+![Lending](https://img.shields.io/badge/Lending-Consumer%20Credit-065F46?style=flat)
+![Healthcare](https://img.shields.io/badge/Healthcare-Prior%20Authorization-6B21A8?style=flat)
+![Wealth](https://img.shields.io/badge/Wealth-Suitability-92400E?style=flat)
+![Regulated AI](https://img.shields.io/badge/Regulated%20AI-Governance%20%26%20Audit-0F1B2D?style=flat)
+![Human in the Loop](https://img.shields.io/badge/Human--in--the--Loop-Review%20Workbench-B45309?style=flat)
 ## What this is
 
 A production-grade agentic decisioning platform with a constant L0–L9 architecture and pluggable domain behavior. The same runtime executes insurance underwriting, consumer lending, healthcare prior authorization, and wealth management suitability decisions — without domain logic in platform code.
