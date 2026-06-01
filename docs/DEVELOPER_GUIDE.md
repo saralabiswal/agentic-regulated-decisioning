@@ -367,3 +367,128 @@ The real response includes full `layer_events`, `rule_events`, and `audit_record
 | 5 | `GET` | `/api/v1/playbook/{submission_id}/results` | Fetch run summary, audit, rule events, layer events |
 | 6 | `GET` | `/api/v1/playbook/{submission_id}/audit-record` | Fetch raw audit package |
 | 7 | `GET` | `/api/v1/playbook/{submission_id}/report` | Fetch business and technical report package |
+
+## Code Flow
+
+This section follows the same commercial-property sample through the application code.
+
+```text
+POST /api/v1/playbook/run
+  api/routers/playbook.py::run_playbook
+    _validate_content
+      core/playbook_schema.py::parse_playbook_yaml
+      domains/registry.py::DomainRegistry.get("insurance")
+      domains/insurance/adapter.py::InsuranceAdapter.validate_submission
+    platform/playbook/executor.py::PlaybookExecutor.run
+      _merge_escalation
+      _merge_governance
+      _build_submission
+      _emit_rule_events
+      platform/orchestrator/graph.py::build_graph().ainvoke
+        load_domain_adapter
+        assemble_context
+        run_agent_0
+        apply_governance_0
+          if escalation: route_to_human -> write_audit_trail
+          else: run_agent_1
+        apply_governance_1
+          if escalation: route_to_human -> write_audit_trail
+          else: run_agent_2
+        apply_governance_2
+          if escalation: route_to_human -> write_audit_trail
+          else: write_audit_trail
+      platform/playbook/history.py::write_run
+```
+
+### 1. API Entry And Validation
+
+`api/main.py` mounts the Playbook router under `/api/v1`, so `/api/v1/playbook/run` enters `api/routers/playbook.py::run_playbook`.
+
+`run_playbook` first calls `_validate_content`. Validation has two layers:
+
+- `core/playbook_schema.py::parse_playbook_yaml` parses YAML and validates the typed Playbook contract with Pydantic.
+- `domains/registry.py::DomainRegistry.get` resolves the selected domain adapter. For this sample, `domain.name: insurance` returns `InsuranceAdapter`.
+- `domains/insurance/adapter.py::validate_submission` checks domain-specific required fields for `commercial_property`, such as `property_address`, `construction_type`, `year_built`, `total_insured_value`, `occupancy`, and `prior_claims`.
+
+If validation has an error, the API returns HTTP `422`. Warnings remain visible but do not block execution.
+
+### 2. Playbook Executor
+
+After validation, `PlaybookExecutor.run` becomes the service-level entrypoint for the decision run.
+
+The executor:
+
+- Loads the domain adapter again from `DomainRegistry`.
+- Merges default domain escalation thresholds with the Playbook rules in `_merge_escalation`.
+- Merges jurisdiction governance with Playbook-specific controls in `_merge_governance`.
+- Converts the Playbook into a canonical `SubmissionEvent` in `_build_submission`.
+- Emits Playbook rule and L0-L9 layer events for `/stream`, `/results`, and `/report`.
+- Invokes the LangGraph orchestrator with `build_graph().ainvoke(OrchestratorState(...))`.
+- Persists the completed run summary through `platform/playbook/history.py::write_run`.
+
+For this sample, `_build_submission` infers `case_value` from `total_insured_value: 4200000`. `_merge_governance` also adds a Playbook value-threshold review condition equivalent to `case_value > 1000000`.
+
+### 3. Domain Adapter
+
+The insurance adapter owns the domain-specific execution contract:
+
+- `get_agent_sequence("commercial_property")` returns `["triage", "risk_scoring", "appetite_check"]`.
+- `get_escalation_thresholds` provides default insurance review thresholds.
+- `get_governance_rules("US_CA")` loads `domains/insurance/governance/US_CA.yaml`.
+- `get_mcp_config` loads the context source configuration from `domains/insurance/mcp_config.yaml`.
+
+The platform does not import insurance logic directly. It talks to the adapter through the shared domain protocol, and the orchestrator imports the selected domain's agent module only after the domain has been resolved.
+
+### 4. Orchestrator Graph
+
+`platform/orchestrator/graph.py::DecisionGraph` compiles the runtime graph.
+
+The graph is compiled with this routing order. Conditional edges can route to human review before later agents run.
+
+1. `load_domain_adapter` records the selected adapter id on the state.
+2. `assemble_context` calls `platform/mcp/assembler.py::assemble` to build `UnifiedContext` from core, history, and external MCP sources.
+3. `run_agent_0`, `run_agent_1`, and `run_agent_2` execute the domain agent sequence returned by the adapter when routing allows them to continue.
+4. `apply_governance_0`, `apply_governance_1`, and `apply_governance_2` evaluate governance after each agent output.
+5. `route_to_human` creates a workbench case when governance, confidence, value, or mandatory-review routing requires human review.
+6. `write_audit_trail` appends the final reconstruction record.
+
+### 5. Insurance Agents
+
+`platform/orchestrator/nodes.py::run_named_agent` dynamically imports `domains.insurance.agents` and executes the named agent from the `AGENTS` map.
+
+For insurance commercial-property submissions, the configured agent path is:
+
+- `triage` classifies the submission using case type, value, occupancy, protection class, and context completeness.
+- `risk_scoring` scores the risk while excluding prohibited jurisdictional factors.
+- `appetite_check` converts the scored risk into an underwriting recommendation.
+
+In this sample, the value-threshold rule triggers after `triage`, so the graph can route to human review before `risk_scoring` and `appetite_check` run. Lower-value cases that pass the first governance check continue through the remaining configured agents.
+
+Each agent returns an `AgentOutput` with decision, confidence, evidence, flags, explanation, and processing time. The explanation is mandatory because audit and reviewer workflows depend on it.
+
+### 6. Governance And Routing
+
+`platform/governance/engine.py::GovernanceEngine.evaluate` applies governance to the current orchestrator state.
+
+The engine:
+
+- Loads jurisdiction rules from the domain governance YAML unless the Playbook executor supplied a merged override.
+- Records every prohibited factor and escalation override that was applied.
+- Verifies that agent outputs have explanations.
+- Checks whether any evidence uses prohibited factors.
+- Evaluates escalation conditions such as `case_value > 1000000`.
+
+In the sample run, `case_value` is `4200000`, so the Playbook value-threshold condition is triggered. Governance can still pass from a prohibited-factor perspective, but the graph routes the case to human review because escalation was triggered.
+
+### 7. Audit, Results, And Reports
+
+When the graph reaches `write_audit_trail`, `platform/governance/audit_trail.py::AuditTrailWriter.write` creates an append-only `AuditRecord`.
+
+The follow-up APIs read persisted and in-memory execution artifacts:
+
+- `/results` calls `get_playbook_results`, which combines run history, audit records, rule events, and layer events.
+- `/audit-record` returns the raw audit package from `AuditTrailWriter.get`.
+- `/report` packages the same data into business and technical summaries.
+- `/stream` emits the stored layer and rule events as server-sent events.
+
+This is why the `submission_id` returned by `/run` is the key used by every later API call.

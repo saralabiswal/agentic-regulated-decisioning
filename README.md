@@ -12,6 +12,8 @@ A production-grade agentic decisioning platform with a constant L0–L9 architec
 
 Business users run typed Playbooks. The platform validates, assembles context, executes specialist agents, applies jurisdiction-aware governance, routes human review when required, and writes append-only audit records. Every decision is traceable, explainable, and reconstructible from persisted records alone.
 
+**Keywords:** Agentic AI · Multi-agent systems · LLM orchestration · MLOps · LangGraph · MCP · FastAPI · Python · Enterprise AI · Regulated AI · Responsible AI · AI governance · AgentOps · Generative AI · RAG · LLMOps · AI platform engineering · Machine learning platform · AI/ML infrastructure · Pydantic · MLflow · Observability · Audit trail · Human-in-the-loop
+
 ---
 
 ## The problem
@@ -44,6 +46,76 @@ The structural answer is to separate the platform from the domain. The platform 
 | Business and technical views diverge | The UI has three persona modes: Business (outcomes and plain-language rationale), Technical (schemas, layer timings, traces, costs), and Side-by-side. Same data, different lens. |
 | Every domain rebuilds the same platform | Domain adapters plug into one L0–L9 runtime path through a typed `DomainAdapter` protocol. No platform module imports domain-specific code. Adding a domain is an adapter implementation, not a platform change. |
 | Real services block local development | `APP_MODE=local_sync` runs the full decision path with SQLite and Ollama — no external service dependencies. Live services activate through environment configuration. |
+
+---
+
+## Technology stack
+
+### Core platform
+
+| Category | Technology | Role |
+|---|---|---|
+| Language | Python 3.12 | Primary backend language |
+| API framework | FastAPI | All API surfaces — REST and SSE streaming |
+| Data validation | Pydantic v2 | Typed schemas at every layer boundary |
+| Agent orchestration | LangGraph | StateGraph with typed `OrchestratorState` — conditional routing, node-level execution |
+| LLM inference | LiteLLM + Ollama | Multi-provider abstraction — mock, local, and hosted paths |
+| Context protocol | Python MCP SDK | Model Context Protocol — abstract vendor system interfaces |
+| Async runtime | Python asyncio | Parallel MCP source assembly via `asyncio.gather` |
+| Packaging | pyproject.toml + uv | Dependency management and build |
+
+### Data and persistence
+
+| Category | Technology | Role |
+|---|---|---|
+| Local store | SQLite | Default local runtime — audit, workbench, DLQ, costs, models, Playbook runs |
+| Live store | PostgreSQL + asyncpg | Live service path — same schema, async connections |
+| Migrations | Custom migration runner | `make migrate` applies schema against configured backend |
+| Model registry | MLflow | Model metadata, artifact storage, stage promotion, shadow mode |
+| Event stream | Redis Streams | Live submission stream, DLQ, pending inspection |
+
+### AI and machine learning
+
+| Category | Technology | Role |
+|---|---|---|
+| LLM providers | Ollama · OpenAI · Anthropic · LiteLLM | Rationale generation — deterministic fallback when unavailable |
+| Local models | llama3.1 (default) | Default Ollama model for agent explanation generation |
+| ML training | scikit-learn · gradient boosting · MLflow pyfunc | Regulated tabular scoring — risk, credit, criteria, suitability |
+| Optional runtimes | XGBoost · LightGBM · ONNX · PyTorch · TensorFlow | Advanced local scoring via MLflow model families |
+| Model governance | MLflow stage promotion | Staging → Production with shadow comparison and rollback |
+| Deterministic fallback | Rules-based scoring | Always available when no promoted MLflow model exists |
+
+### Observability and operations
+
+| Category | Technology | Role |
+|---|---|---|
+| Metrics | Prometheus | Counter, histogram, and gauge metrics across all platform layers |
+| Dashboards | Grafana | Operational dashboards — submission volume, escalation rate, cost, latency |
+| Tracing | OpenTelemetry + Jaeger | Distributed trace spans — MCP calls, agent execution, governance, audit |
+| LLM cost tracking | Custom cost tracker | Token cost per agent run, per domain — persisted to data store |
+| Health checks | FastAPI health endpoint | Database, Redis, and MLflow availability at `/health` |
+| Log structure | structlog | Structured JSON logging with trace correlation |
+
+### Frontend
+
+| Category | Technology | Role |
+|---|---|---|
+| Framework | React 18 + Vite | Enterprise workbench UI |
+| Language | TypeScript | Typed API client and component contracts |
+| Charts | Recharts | Analytics, confidence distributions, cost trends, approval rates |
+| Streaming | EventSource (SSE) | Real-time layer execution events in Playbook Studio |
+| Styling | Tailwind CSS | Utility-first enterprise design system |
+
+### Developer experience
+
+| Category | Technology | Role |
+|---|---|---|
+| Linting | ruff | Python lint and format |
+| Type checking | mypy | Static type enforcement |
+| Testing | pytest + pytest-asyncio + pytest-cov | 80% coverage gate — all tests run on mock path |
+| CI | GitHub Actions | lint → typecheck → test on every push and PR |
+| Containers | Docker + docker-compose | Local open-source service stack |
+| Kafka topology | docker-compose.kafka.yml | Production-style event stream topology (optional) |
 
 ---
 
@@ -90,9 +162,9 @@ L9  Governance              YAML rules engine · jurisdiction-aware · append-on
 
 ## Architecture diagram
 
-![Agentic Decisioning Fabric — L0–L9 Runtime Map](docs/planning/architecture_diagram.svg)
+![Agentic Decisioning Fabric — L0–L9 Runtime Map](docs/architecture_diagram.svg)
 
-> Full reference document: [regulated_decisioning_architecture.html](docs/planning/regulated_decisioning_architecture.html)
+> Full reference document: [regulated_decisioning_architecture.html](docs/regulated_decisioning_architecture.html)
 
 ---
 
