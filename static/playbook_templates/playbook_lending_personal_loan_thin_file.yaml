@@ -1,0 +1,30 @@
+# Business Playbook: Lending personal loan thin file
+playbook:
+  name: "Personal Loan - Thin File Review"
+  version: "1.0"
+  created_by: "Credit operations"
+  description: "Small personal loan with limited credit history."
+
+domain:
+  name: lending
+  case_type: personal_loan
+
+jurisdiction:
+  code: US_FL
+
+rules:
+  max_auto_decision_value: 15000
+  confidence_threshold: 0.77
+  mandatory_review_triggers:
+    - "months_credit_history < 24"
+  prohibited_factors:
+    - protected_class
+
+submission:
+  annual_income: 58000
+  employment_type: salaried
+  monthly_debt_obligations: 950
+  requested_loan_amount: 9000
+  loan_purpose: debt_consolidation
+  months_credit_history: 18
+  prior_derogatory_marks: 0

@@ -1,0 +1,30 @@
+# Business Playbook: Wealth options authorization conservative
+playbook:
+  name: "Options Authorization - Conservative Profile"
+  version: "1.0"
+  created_by: "Wealth supervision"
+  description: "Options request for a conservative retirement account."
+
+domain:
+  name: wealth
+  case_type: options_authorization
+
+jurisdiction:
+  code: US_FL
+
+rules:
+  max_auto_decision_value: 100000
+  confidence_threshold: 0.82
+  mandatory_review_triggers:
+    - "account_type == retirement"
+  prohibited_factors:
+    - unsupported_risk_assumption
+
+submission:
+  client_age: 68
+  risk_tolerance: conservative
+  liquid_net_worth: 420000
+  annual_income: 98000
+  options_experience_years: 1
+  account_type: retirement
+  requested_level: covered_calls

@@ -1,0 +1,7 @@
+{
+  "case_type": "personal_loan",
+  "jurisdiction": "US_FL",
+  "entity_id": "lend_pl_fl_003",
+  "case_value": 12000,
+  "expected_outcome": "APPROVE_WITH_CONDITIONS"
+}

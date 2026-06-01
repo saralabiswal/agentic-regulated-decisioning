@@ -1,0 +1,33 @@
+# Business Playbook: Healthcare imaging short duration
+playbook:
+  name: "Imaging Authorization - Short Conservative Care"
+  version: "1.0"
+  created_by: "Clinical operations"
+  description: "Imaging request with short conservative treatment duration."
+
+domain:
+  name: healthcare
+  case_type: prior_auth_imaging
+
+jurisdiction:
+  code: US_FL
+
+rules:
+  max_auto_decision_value: 0
+  confidence_threshold: 0.81
+  mandatory_review_triggers:
+    - "conservative_treatment_duration_weeks < 4"
+  prohibited_factors:
+    - unrelated_demographic_data
+
+submission:
+  procedure_code: "72148"
+  procedure_description: "MRI lumbar spine"
+  diagnosis_code: "M54.50"
+  diagnosis_description: "Low back pain"
+  conservative_treatment_tried: true
+  conservative_treatment_duration_weeks: 2
+  ordering_provider_specialty: orthopedics
+  patient_age: 39
+  symptom_duration_weeks: 5
+  prior_imaging_same_region: false

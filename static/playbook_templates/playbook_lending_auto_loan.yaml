@@ -1,0 +1,32 @@
+# Business Playbook: Lending auto loan
+playbook:
+  name: "Auto Loan Application Review"
+  version: "1.0"
+  created_by: "Credit operations"
+  description: "Vehicle financing request with standard affordability checks."
+
+domain:
+  name: lending
+  case_type: auto_loan
+
+jurisdiction:
+  code: US_TX
+
+rules:
+  max_auto_decision_value: 50000
+  confidence_threshold: 0.74
+  mandatory_review_triggers:
+    - "prior_derogatory_marks > 1"
+  prohibited_factors:
+    - marital_status
+
+submission:
+  annual_income: 85000
+  employment_type: salaried
+  years_employed: 4
+  monthly_debt_obligations: 1200
+  requested_loan_amount: 32000
+  vehicle_year: 2023
+  vehicle_type: sedan
+  prior_derogatory_marks: 0
+  months_credit_history: 84

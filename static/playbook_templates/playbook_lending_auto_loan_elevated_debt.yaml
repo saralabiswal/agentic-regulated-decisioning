@@ -1,0 +1,32 @@
+# Business Playbook: Lending auto loan elevated debt
+playbook:
+  name: "Auto Loan - Elevated Debt Ratio"
+  version: "1.0"
+  created_by: "Credit operations"
+  description: "Vehicle financing request with affordability warning."
+
+domain:
+  name: lending
+  case_type: auto_loan
+
+jurisdiction:
+  code: US_CA
+
+rules:
+  max_auto_decision_value: 45000
+  confidence_threshold: 0.79
+  mandatory_review_triggers:
+    - "debt_ratio > 0.40"
+  prohibited_factors:
+    - marital_status
+
+submission:
+  annual_income: 72000
+  employment_type: salaried
+  years_employed: 2
+  monthly_debt_obligations: 2600
+  requested_loan_amount: 41000
+  vehicle_year: 2025
+  vehicle_type: suv
+  prior_derogatory_marks: 1
+  months_credit_history: 48

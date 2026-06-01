@@ -1,0 +1,7 @@
+{
+  "case_type": "commercial_property",
+  "jurisdiction": "US_CA",
+  "entity_id": "ins_cp_ca_001",
+  "case_value": 4200000,
+  "expected_outcome": "ACCEPT_WITH_CONDITIONS"
+}

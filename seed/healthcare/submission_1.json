@@ -1,0 +1,7 @@
+{
+  "case_type": "prior_auth",
+  "jurisdiction": "US_CA",
+  "entity_id": "hc_mri_ca_001",
+  "case_value": 2800,
+  "expected_outcome": "APPROVE"
+}

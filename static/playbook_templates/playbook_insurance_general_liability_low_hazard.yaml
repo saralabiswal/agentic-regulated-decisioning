@@ -1,0 +1,30 @@
+# Business Playbook: Insurance general liability low hazard
+playbook:
+  name: "General Liability - Low Hazard Contractor"
+  version: "1.0"
+  created_by: "Risk operations"
+  description: "Small contractor submission with clean loss history."
+
+domain:
+  name: insurance
+  case_type: general_liability
+
+jurisdiction:
+  code: US_TX
+
+rules:
+  max_auto_decision_value: 750000
+  confidence_threshold: 0.76
+  mandatory_review_triggers:
+    - "employee_count > 75"
+  prohibited_factors:
+    - credit_score
+
+submission:
+  business_description: "Interior painting contractor"
+  annual_revenue: 640000
+  employee_count: 12
+  years_in_business: 8
+  prior_claims: 0
+  subcontractor_usage: low
+  requested_limit: 1000000

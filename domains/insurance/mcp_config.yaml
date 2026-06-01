@@ -1,0 +1,13 @@
+core_system:
+  vendor: policy_admin_system
+  mock_data_path: seed/insurance/
+history_system:
+  vendor: claims_system
+  sources:
+    - loss_history_claims
+    - clue_report
+external_data:
+  vendor: industry_data_bureau
+  products:
+    - bureau_rating
+    - catastrophe_model

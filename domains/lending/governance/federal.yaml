@@ -1,0 +1,17 @@
+jurisdiction: federal
+regulatory_framework: "Fair Credit Regulatory Framework, Fair Housing Act, consumer_finance_regulator fair credit rules"
+effective_date: "2024-01-01"
+prohibited_factors:
+  - race
+  - color
+  - religion
+  - national_origin
+  - sex
+  - marital_status
+  - age
+required_disclosures:
+  adverse_action: "This credit decision was based on the following permissible factors: {factors}. You have the right to a statement of specific reasons under fair credit rules."
+audit_retention_days: 1825
+escalation_overrides:
+  - condition: "flags contains protected_class_proxy"
+    action: mandatory_human_review

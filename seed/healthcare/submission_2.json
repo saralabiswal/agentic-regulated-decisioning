@@ -1,0 +1,7 @@
+{
+  "case_type": "specialty_referral",
+  "jurisdiction": "US_TX",
+  "entity_id": "hc_ref_tx_002",
+  "case_value": 900,
+  "expected_outcome": "ESCALATE"
+}

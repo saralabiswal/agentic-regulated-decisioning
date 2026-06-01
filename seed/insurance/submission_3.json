@@ -1,0 +1,7 @@
+{
+  "case_type": "personal_auto",
+  "jurisdiction": "US_CA",
+  "entity_id": "ins_pa_ca_003",
+  "case_value": 38000,
+  "expected_outcome": "ACCEPT"
+}

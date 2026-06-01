@@ -1,0 +1,31 @@
+# Business Playbook: Wealth annuity liquidity review
+playbook:
+  name: "Annuity Recommendation - Liquidity Review"
+  version: "1.0"
+  created_by: "Wealth supervision"
+  description: "Income-focused annuity recommendation with liquidity considerations."
+
+domain:
+  name: wealth
+  case_type: annuity_recommendation
+
+jurisdiction:
+  code: US_TX
+
+rules:
+  max_auto_decision_value: 300000
+  confidence_threshold: 0.8
+  mandatory_review_triggers:
+    - "liquidity_needs == high"
+  prohibited_factors:
+    - unsupported_risk_assumption
+
+submission:
+  client_age: 59
+  investment_objective: income
+  risk_tolerance: moderate
+  liquid_net_worth: 780000
+  annual_income: 145000
+  investment_amount: 260000
+  liquidity_needs: high
+  surrender_period_years: 7

@@ -1,0 +1,7 @@
+{
+  "case_type": "auto_loan",
+  "jurisdiction": "US_TX",
+  "entity_id": "lend_auto_tx_001",
+  "case_value": 42000,
+  "expected_outcome": "APPROVE"
+}

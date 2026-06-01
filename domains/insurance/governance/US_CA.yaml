@@ -1,0 +1,16 @@
+jurisdiction: US_CA
+regulatory_framework: "Insurance Regulatory Framework (California DOI implementation)"
+effective_date: "2024-01-01"
+prohibited_factors:
+  - credit_score
+  - gender
+  - marital_status
+  - zip_code_as_proxy
+required_disclosures:
+  adverse_action: "This decision was made based on the following underwriting factors: {factors}. California applicants may request a written explanation and may dispute inaccurate information used in this decision."
+audit_retention_days: 2555
+escalation_overrides:
+  - condition: "case_value > 1000000"
+    action: mandatory_human_review
+  - condition: "flags contains protected_class_proxy"
+    action: mandatory_human_review

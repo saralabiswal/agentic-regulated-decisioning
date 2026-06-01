@@ -1,0 +1,7 @@
+{
+  "case_type": "mortgage",
+  "jurisdiction": "US_NY",
+  "entity_id": "lend_mort_ny_002",
+  "case_value": 640000,
+  "expected_outcome": "ESCALATE"
+}

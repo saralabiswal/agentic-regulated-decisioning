@@ -1,0 +1,12 @@
+jurisdiction: federal
+regulatory_framework: "healthcare_privacy_framework and coverage medical-necessity criteria"
+effective_date: "2024-01-01"
+prohibited_factors:
+  - genetic_information
+  - non_treatment_related_phi
+required_disclosures:
+  adverse_action: "This coverage decision considered medical necessity criteria and plan benefits: {factors}. The member may request appeal rights and clinical rationale."
+audit_retention_days: 2190
+escalation_overrides:
+  - condition: "flags contains incomplete_clinical_notes"
+    action: mandatory_human_review

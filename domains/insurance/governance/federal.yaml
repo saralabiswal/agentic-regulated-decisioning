@@ -1,0 +1,13 @@
+jurisdiction: federal
+regulatory_framework: "Insurance Regulatory Framework model law baseline"
+effective_date: "2024-01-01"
+prohibited_factors:
+  - race
+  - religion
+  - national_origin
+required_disclosures:
+  adverse_action: "This decision was made based on the following underwriting factors: {factors}. You may request additional information about the reasons for this decision."
+audit_retention_days: 2190
+escalation_overrides:
+  - condition: "case_value > 2500000"
+    action: mandatory_human_review

@@ -1,0 +1,29 @@
+# Business Playbook: Healthcare medication step therapy
+playbook:
+  name: "Medication Authorization - Step Therapy"
+  version: "1.0"
+  created_by: "Pharmacy operations"
+  description: "Specialty medication request with prior therapy evidence."
+
+domain:
+  name: healthcare
+  case_type: prior_auth_medication
+
+jurisdiction:
+  code: US_TX
+
+rules:
+  max_auto_decision_value: 0
+  confidence_threshold: 0.82
+  mandatory_review_triggers:
+    - "prior_therapy_tried == false"
+  prohibited_factors:
+    - unrelated_demographic_data
+
+submission:
+  medication_name: "specialty biologic"
+  diagnosis_code: "L40.50"
+  patient_age: 47
+  prior_therapy_tried: true
+  prior_therapy_response: inadequate
+  prescriber_specialty: rheumatology

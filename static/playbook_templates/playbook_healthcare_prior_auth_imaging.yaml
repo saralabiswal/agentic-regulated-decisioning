@@ -1,0 +1,32 @@
+# Business Playbook: Healthcare imaging authorization
+playbook:
+  name: "Imaging Prior Authorization Review"
+  version: "1.0"
+  created_by: "Clinical operations"
+  description: "Imaging request with diagnosis and conservative treatment history."
+
+domain:
+  name: healthcare
+  case_type: prior_auth_imaging
+
+jurisdiction:
+  code: US_NY
+
+rules:
+  confidence_threshold: 0.78
+  mandatory_review_triggers:
+    - "conservative_treatment_duration_weeks < 4"
+  prohibited_factors:
+    - non_treatment_related_phi
+
+submission:
+  procedure_code: "72148"
+  procedure_description: "MRI Lumbar Spine without contrast"
+  diagnosis_code: "M54.5"
+  diagnosis_description: "Low back pain"
+  conservative_treatment_tried: true
+  conservative_treatment_duration_weeks: 6
+  ordering_provider_specialty: primary_care
+  patient_age: 47
+  symptom_duration_weeks: 8
+  prior_imaging_same_region: false

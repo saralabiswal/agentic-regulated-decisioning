@@ -1,0 +1,13 @@
+{
+  "title": "Regulated Decisioning",
+  "panels": [
+    {"title": "Submission volume over time", "type": "timeseries"},
+    {"title": "Escalation rate by domain and jurisdiction", "type": "barchart"},
+    {"title": "Agent confidence distribution", "type": "histogram"},
+    {"title": "MCP source availability", "type": "gauge"},
+    {"title": "LLM cost per decision", "type": "timeseries"},
+    {"title": "Workbench queue depth", "type": "stat"},
+    {"title": "Processing latency p50/p95/p99", "type": "timeseries"},
+    {"title": "Governance violations by type", "type": "barchart"}
+  ]
+}

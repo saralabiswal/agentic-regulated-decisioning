@@ -1,0 +1,36 @@
+# Business Playbook: Insurance commercial property
+playbook:
+  name: "Commercial Property Underwriting - San Francisco"
+  version: "1.0"
+  created_by: "Risk operations"
+  description: "Mid-size office building submission for review."
+
+domain:
+  name: insurance
+  case_type: commercial_property
+
+jurisdiction:
+  code: US_CA
+
+rules:
+  max_auto_decision_value: 1000000
+  confidence_threshold: 0.75
+  mandatory_review_triggers:
+    - "prior_claims > 3"
+  prohibited_factors:
+    - credit_score
+
+submission:
+  property_address: "450 Market Street, San Francisco, CA 94105"
+  construction_type: masonry
+  year_built: 1991
+  total_insured_value: 4200000
+  occupancy: office
+  square_footage: 28000
+  number_of_stories: 8
+  sprinkler_system: true
+  prior_claims: 1
+  prior_claims_total_value: 42000
+  protection_class: 3
+  distance_to_fire_station_miles: 1.2
+  notes: "Tenant-occupied office building. Recently renovated."

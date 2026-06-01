@@ -1,0 +1,7 @@
+{
+  "case_type": "suitability_check",
+  "jurisdiction": "US_CA",
+  "entity_id": "wealth_eq_ca_001",
+  "case_value": 500000,
+  "expected_outcome": "SUITABLE"
+}

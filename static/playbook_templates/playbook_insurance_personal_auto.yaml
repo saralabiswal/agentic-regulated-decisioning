@@ -1,0 +1,27 @@
+# Business Playbook: Insurance personal auto
+playbook:
+  name: "Personal Auto Eligibility Review"
+  version: "1.0"
+  created_by: "Risk operations"
+  description: "Standard vehicle submission for an individual driver."
+
+domain:
+  name: insurance
+  case_type: personal_auto
+
+jurisdiction:
+  code: US_CA
+
+rules:
+  confidence_threshold: 0.75
+  mandatory_review_triggers:
+    - "licensed_years < 2"
+  prohibited_factors: []
+
+submission:
+  vehicle_year: 2022
+  driver_age: 34
+  licensed_years: 12
+  annual_mileage: 11000
+  prior_claims: 0
+  violations: 0

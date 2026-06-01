@@ -1,0 +1,30 @@
+# Business Playbook: Lending mortgage
+playbook:
+  name: "Mortgage Affordability Review"
+  version: "1.0"
+  created_by: "Credit operations"
+  description: "Home loan request with income and down payment context."
+
+domain:
+  name: lending
+  case_type: mortgage
+
+jurisdiction:
+  code: US_NY
+
+rules:
+  max_auto_decision_value: 650000
+  confidence_threshold: 0.72
+  mandatory_review_triggers:
+    - "monthly_debt_obligations > 4500"
+  prohibited_factors:
+    - age
+
+submission:
+  annual_income: 145000
+  employment_type: salaried
+  monthly_debt_obligations: 3100
+  requested_loan_amount: 620000
+  property_value: 780000
+  down_payment: 160000
+  months_credit_history: 144

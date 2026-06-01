@@ -1,0 +1,32 @@
+# Business Playbook: Insurance commercial auto fleet
+playbook:
+  name: "Commercial Auto - Regional Fleet"
+  version: "1.0"
+  created_by: "Fleet underwriting"
+  description: "Regional delivery fleet with mileage and driver controls."
+
+domain:
+  name: insurance
+  case_type: commercial_auto
+
+jurisdiction:
+  code: federal
+
+rules:
+  max_auto_decision_value: 1250000
+  confidence_threshold: 0.74
+  mandatory_review_triggers:
+    - "fleet_size > 40"
+  prohibited_factors:
+    - zip_code_as_proxy
+
+submission:
+  fleet_size: 36
+  vehicle_types:
+    - cargo_van
+    - box_truck
+  annual_mileage: 460000
+  driver_screening: standard
+  telematics_enabled: true
+  prior_claims: 3
+  operating_radius_miles: 220

@@ -1,0 +1,7 @@
+{
+  "case_type": "elective_surgery",
+  "jurisdiction": "US_NY",
+  "entity_id": "hc_surg_ny_003",
+  "case_value": 38000,
+  "expected_outcome": "APPROVE_WITH_CPT_CODES"
+}

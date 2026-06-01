@@ -1,0 +1,12 @@
+jurisdiction: federal
+regulatory_framework: "wealth_suitability_framework and investment_advice_framework"
+effective_date: "2024-01-01"
+prohibited_factors:
+  - undisclosed_compensation
+  - unsupported_risk_profile
+required_disclosures:
+  adverse_action: "This recommendation considered investment objective, risk tolerance, time horizon, liquidity needs, and product costs: {factors}. Documentation must support suitability and best-interest obligations."
+audit_retention_days: 2190
+escalation_overrides:
+  - condition: "flags contains risk_profile_mismatch"
+    action: mandatory_human_review

@@ -1,0 +1,33 @@
+# Business Playbook: Wealth suitability short horizon
+playbook:
+  name: "Suitability Check - Short Horizon Equity"
+  version: "1.0"
+  created_by: "Wealth supervision"
+  description: "Equity portfolio proposal with short investment horizon."
+
+domain:
+  name: wealth
+  case_type: suitability_check
+
+jurisdiction:
+  code: US_CA
+
+rules:
+  max_auto_decision_value: 250000
+  confidence_threshold: 0.79
+  mandatory_review_triggers:
+    - "investment_horizon_years < 3"
+  prohibited_factors:
+    - unsupported_risk_assumption
+
+submission:
+  client_age: 52
+  investment_objective: growth
+  risk_tolerance: moderate
+  investment_horizon_years: 2
+  liquid_net_worth: 650000
+  annual_income: 180000
+  investment_amount: 210000
+  proposed_product_type: equity_portfolio
+  existing_portfolio_allocation: balanced
+  prior_investment_experience: moderate

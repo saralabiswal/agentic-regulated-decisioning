@@ -1,0 +1,12 @@
+jurisdiction: US_TX
+regulatory_framework: "Insurance Regulatory Framework (Texas DOI implementation)"
+effective_date: "2024-01-01"
+prohibited_factors:
+  - gender
+  - marital_status
+required_disclosures:
+  adverse_action: "This decision was made using permitted underwriting and rating factors: {factors}. Texas applicants may request the primary reasons for an adverse underwriting action."
+audit_retention_days: 1825
+escalation_overrides:
+  - condition: "case_value > 5000000"
+    action: mandatory_human_review

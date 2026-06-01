@@ -1,0 +1,7 @@
+{
+  "case_type": "options_authorization",
+  "jurisdiction": "US_FL",
+  "entity_id": "wealth_opt_fl_002",
+  "case_value": 200000,
+  "expected_outcome": "ESCALATE"
+}

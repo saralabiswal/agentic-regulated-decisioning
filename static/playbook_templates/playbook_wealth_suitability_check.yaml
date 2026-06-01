@@ -1,0 +1,36 @@
+# Business Playbook: Wealth suitability
+playbook:
+  name: "Portfolio Suitability Check"
+  version: "1.0"
+  created_by: "Advisory supervision"
+  description: "Product suitability review for a proposed portfolio allocation."
+
+domain:
+  name: wealth
+  case_type: suitability_check
+
+jurisdiction:
+  code: US_FL
+
+rules:
+  confidence_threshold: 0.74
+  mandatory_review_triggers:
+    - "investment_amount > 250000"
+  prohibited_factors:
+    - unsupported_risk_profile
+
+submission:
+  client_age: 58
+  investment_objective: growth_and_income
+  risk_tolerance: moderate
+  investment_horizon_years: 12
+  liquid_net_worth: 450000
+  annual_income: 120000
+  investment_amount: 85000
+  proposed_product_type: equity_portfolio
+  existing_portfolio_allocation:
+    equities: 0.55
+    fixed_income: 0.35
+    cash: 0.10
+  prior_investment_experience: true
+  experience_years: 15

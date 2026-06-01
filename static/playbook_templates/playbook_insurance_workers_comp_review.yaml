@@ -1,0 +1,30 @@
+# Business Playbook: Insurance workers compensation review
+playbook:
+  name: "Workers Compensation - Payroll Growth Review"
+  version: "1.0"
+  created_by: "Risk operations"
+  description: "Growing employer with payroll expansion and moderate class exposure."
+
+domain:
+  name: insurance
+  case_type: workers_comp
+
+jurisdiction:
+  code: US_CA
+
+rules:
+  max_auto_decision_value: 500000
+  confidence_threshold: 0.78
+  mandatory_review_triggers:
+    - "payroll > 2500000"
+  prohibited_factors:
+    - gender
+
+submission:
+  payroll: 3100000
+  employee_count: 84
+  industry_class: light_manufacturing
+  prior_claims: 2
+  safety_program_active: true
+  experience_mod: 1.12
+  requested_effective_date: "2026-07-01"

@@ -1,0 +1,27 @@
+# Business Playbook: Healthcare specialty authorization
+playbook:
+  name: "Specialty Referral Authorization Review"
+  version: "1.0"
+  created_by: "Clinical operations"
+  description: "Specialist referral request with complete clinical notes."
+
+domain:
+  name: healthcare
+  case_type: prior_auth_specialty
+
+jurisdiction:
+  code: US_FL
+
+rules:
+  confidence_threshold: 0.78
+  mandatory_review_triggers:
+    - "clinical_notes_complete == false"
+  prohibited_factors: []
+
+submission:
+  procedure_code: "99244"
+  diagnosis_code: "M25.561"
+  ordering_provider_specialty: primary_care
+  patient_age: 52
+  clinical_notes_complete: true
+  symptom_duration_weeks: 10

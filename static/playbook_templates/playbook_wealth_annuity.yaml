@@ -1,0 +1,29 @@
+# Business Playbook: Wealth annuity recommendation
+playbook:
+  name: "Income Product Recommendation Review"
+  version: "1.0"
+  created_by: "Advisory supervision"
+  description: "Retirement income recommendation with liquidity review."
+
+domain:
+  name: wealth
+  case_type: annuity_recommendation
+
+jurisdiction:
+  code: US_TX
+
+rules:
+  confidence_threshold: 0.74
+  mandatory_review_triggers:
+    - "liquidity_needs == high"
+  prohibited_factors: []
+
+submission:
+  client_age: 62
+  investment_objective: guaranteed_income
+  risk_tolerance: moderate
+  liquid_net_worth: 600000
+  annual_income: 130000
+  investment_amount: 200000
+  liquidity_needs: moderate
+  prior_investment_experience: true

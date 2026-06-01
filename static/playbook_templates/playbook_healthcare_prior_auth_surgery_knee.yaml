@@ -1,0 +1,30 @@
+# Business Playbook: Healthcare surgery review
+playbook:
+  name: "Surgery Authorization - Knee Replacement"
+  version: "1.0"
+  created_by: "Clinical operations"
+  description: "Elective surgery request with conservative care evidence."
+
+domain:
+  name: healthcare
+  case_type: prior_auth_surgery
+
+jurisdiction:
+  code: US_NY
+
+rules:
+  max_auto_decision_value: 0
+  confidence_threshold: 0.84
+  mandatory_review_triggers:
+    - "site_of_service == inpatient"
+  prohibited_factors:
+    - unrelated_demographic_data
+
+submission:
+  procedure_code: "27447"
+  diagnosis_code: "M17.11"
+  patient_age: 62
+  conservative_treatment_tried: true
+  site_of_service: outpatient
+  physical_therapy_weeks: 12
+  imaging_complete: true
