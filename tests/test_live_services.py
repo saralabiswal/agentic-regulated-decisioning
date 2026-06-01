@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from pathlib import Path
 from platform.data import postgres_store
 from platform.observability.cost_tracker import CostTracker
 from platform.registry.model_registry import ModelRegistry, ScoringModel
+from tempfile import gettempdir
 from uuid import uuid4
 
 import pytest
@@ -213,7 +215,8 @@ async def test_health_local_checks(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_cost_tracker_async_sqlite(monkeypatch):
-    monkeypatch.setenv("DATABASE_URL", "sqlite:////private/tmp/live_services_cost_test.db")
+    db_path = Path(gettempdir()) / f"live_services_cost_test_{uuid4()}.db"
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
     get_settings.cache_clear()
     try:
         cost = await CostTracker().record_llm_call_async(

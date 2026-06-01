@@ -5,9 +5,11 @@ import os
 import platform as stdlib_platform
 import sys
 from pathlib import Path
+from tempfile import gettempdir
 from uuid import uuid4
 
-os.environ["DATABASE_URL"] = f"sqlite:////private/tmp/regulated_decisioning_tests_{uuid4()}.db"
+test_db_path = Path(gettempdir()) / f"regulated_decisioning_tests_{uuid4()}.db"
+os.environ["DATABASE_URL"] = f"sqlite:///{test_db_path}"
 
 project_platform = Path(__file__).resolve().parents[1] / "platform"
 paths = list(getattr(stdlib_platform, "__path__", []))
