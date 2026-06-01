@@ -5,6 +5,20 @@
 Author: Sarala Biswal &nbsp;·&nbsp; Repository: `agentic-regulated-decisioning`
 
 ---
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white)
+![LangGraph](https://img.shields.io/badge/LangGraph-orchestration-6D28D9?style=flat)
+![MCP](https://img.shields.io/badge/MCP-context--assembly-0E7490?style=flat)
+![MLflow](https://img.shields.io/badge/MLflow-model--registry-0194E2?style=flat&logo=mlflow&logoColor=white)
+![Pydantic](https://img.shields.io/badge/Pydantic-v2-E92063?style=flat)
+![Redis](https://img.shields.io/badge/Redis-Streams-DC382D?style=flat&logo=redis&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-asyncpg-4169E1?style=flat&logo=postgresql&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
+![Prometheus](https://img.shields.io/badge/Prometheus-metrics-E6522C?style=flat&logo=prometheus&logoColor=white)
+![Jaeger](https://img.shields.io/badge/Jaeger-tracing-66CFE3?style=flat)
+![Ollama](https://img.shields.io/badge/Ollama-local--LLM-000000?style=flat)
+![Docker](https://img.shields.io/badge/Docker-compose-2496ED?style=flat&logo=docker&logoColor=white)
 
 ## What this is
 
