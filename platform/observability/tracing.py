@@ -16,13 +16,21 @@ def configure_tracing(service_name: str = "agentic-regulated-decisioning") -> di
         from opentelemetry.sdk.resources import Resource
         from opentelemetry.sdk.trace import TracerProvider
         from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+        from core.config import get_settings
     except Exception:
         return {"service_name": service_name, "configured": False}
 
     provider = TracerProvider(resource=Resource.create({"service.name": service_name}))
-    provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+    settings = get_settings()
+    exporter = "none"
+    if settings.app_mode == "real":
+        provider.add_span_processor(
+            BatchSpanProcessor(OTLPSpanExporter(endpoint=settings.jaeger_endpoint))
+        )
+        exporter = "otlp"
     trace.set_tracer_provider(provider)
-    return {"service_name": service_name, "configured": True}
+    return {"service_name": service_name, "configured": True, "exporter": exporter}
 
 
 def instrument_fastapi(app: Any) -> bool:

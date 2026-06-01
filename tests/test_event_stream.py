@@ -11,6 +11,7 @@ from uuid import uuid4
 
 import pytest
 
+from core.config import get_settings
 from core.schemas import SubmissionEvent
 
 
@@ -58,12 +59,17 @@ async def test_memory_stream_poll_once_processes_published_event():
 
 
 @pytest.mark.asyncio
-async def test_stream_inspector_shows_memory_inputs():
-    reset()
-    item = event()
-    await SubmissionProducer().publish(item)
+async def test_stream_inspector_shows_memory_inputs(monkeypatch):
+    monkeypatch.setenv("APP_MODE", "local_sync")
+    get_settings.cache_clear()
+    try:
+        reset()
+        item = event()
+        await SubmissionProducer().publish(item)
 
-    inspection = await inspect_submission_stream("insurance")
+        inspection = await inspect_submission_stream("insurance")
+    finally:
+        get_settings.cache_clear()
 
     assert inspection.backend == "local_sync"
     assert inspection.stream_name == "submissions:insurance"

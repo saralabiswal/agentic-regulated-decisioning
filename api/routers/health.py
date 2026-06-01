@@ -51,9 +51,9 @@ async def _redis_check() -> str:
 
 
 async def _mlflow_check() -> str:
-    """Check remote MLflow reachability; local mode reports as local."""
+    """Check remote MLflow reachability only in real mode; local and mock report local."""
     settings = get_settings()
-    if not settings.mlflow_tracking_uri.startswith("http"):
+    if settings.app_mode != "real" or not settings.mlflow_tracking_uri.startswith("http"):
         return "local"
     try:
         await asyncio.to_thread(
