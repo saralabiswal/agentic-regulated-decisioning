@@ -1,10 +1,11 @@
 # Agentic Decisioning Fabric
 
-**Domain-independent regulated decision platform**
+**A domain-independent platform for regulated AI decisions**
 
 Author: Sarala Biswal &nbsp;·&nbsp; Repository: `agentic-regulated-decisioning`
 
 ---
+
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white)
 ![LangGraph](https://img.shields.io/badge/LangGraph-orchestration-6D28D9?style=flat)
@@ -13,7 +14,7 @@ Author: Sarala Biswal &nbsp;·&nbsp; Repository: `agentic-regulated-decisioning`
 ![Pydantic](https://img.shields.io/badge/Pydantic-v2-E92063?style=flat)
 ![Redis](https://img.shields.io/badge/Redis-Streams-DC382D?style=flat&logo=redis&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-asyncpg-4169E1?style=flat&logo=postgresql&logoColor=white)
-![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
 ![Prometheus](https://img.shields.io/badge/Prometheus-metrics-E6522C?style=flat&logo=prometheus&logoColor=white)
 ![Jaeger](https://img.shields.io/badge/Jaeger-tracing-66CFE3?style=flat)
@@ -26,19 +27,26 @@ Author: Sarala Biswal &nbsp;·&nbsp; Repository: `agentic-regulated-decisioning`
 ![Wealth](https://img.shields.io/badge/Wealth-Suitability-92400E?style=flat)
 ![Regulated AI](https://img.shields.io/badge/Regulated%20AI-Governance%20%26%20Audit-0F1B2D?style=flat)
 ![Human in the Loop](https://img.shields.io/badge/Human--in--the--Loop-Review%20Workbench-B45309?style=flat)
-## What this is
 
-A production-grade agentic decisioning platform with a constant L0–L9 architecture and pluggable domain behavior. The same runtime executes insurance underwriting, consumer lending, healthcare prior authorization, and wealth management suitability decisions — without domain logic in platform code.
+---
 
-Business users run typed Playbooks. The platform validates, assembles context, executes specialist agents, applies jurisdiction-aware governance, routes human review when required, and writes append-only audit records. Every decision is traceable, explainable, and reconstructible from persisted records alone.
+Regulated industries make high-stakes decisions under legal weight — insurance underwriting, credit approvals, prior authorizations, suitability assessments. Most platforms treat governance as an afterthought: rules bolted on, audit records assembled after the fact, domain logic scattered through platform code. Every new regulated workflow gets rebuilt from scratch, with the same failure modes.
 
-**Keywords:** Agentic AI · Multi-agent systems · LLM orchestration · MLOps · LangGraph · MCP · FastAPI · Python · Enterprise AI · Regulated AI · Responsible AI · AI governance · AgentOps · Generative AI · RAG · LLMOps · AI platform engineering · Machine learning platform · AI/ML infrastructure · Pydantic · MLflow · Observability · Audit trail · Human-in-the-loop
+This platform takes a different position. Platform and domain are structurally separated. The same L0–L9 runtime handles insurance, lending, healthcare, and wealth management — without a single domain-specific import in platform code. Every decision is explainable by schema, traceable end-to-end, and reconstructible from append-only records alone. That claim is verifiable:
+
+```bash
+pytest tests/test_domain_protocol.py -v
+```
+
+This test asserts that all four domain adapters satisfy the `DomainAdapter` protocol and that no platform module contains domain-specific imports. The architecture is the test.
+
+> This project reflects patterns from building production AI/ML platforms at enterprise scale — agentic systems operating across hundreds of enterprise clients, launched to thousands of customers without phased rollout.
 
 ---
 
 ## The problem
 
-Regulated industries — insurance, lending, healthcare, wealth management — make high-impact decisions every day: underwriting submissions, credit applications, prior authorization requests, suitability assessments. These decisions carry legal weight, require documented rationale, and must be reproducible for regulators.
+Regulated industries make high-impact decisions every day: underwriting submissions, credit applications, prior authorization requests, suitability assessments. These decisions carry legal weight, require documented rationale, and must be reproducible for regulators.
 
 In practice, they are made across disconnected systems. Rules live in one place. Case data lives in another. Model outputs are generated separately. Reviewer notes are captured in a queue tool. Audit records — if they exist — are assembled after the fact from fragments across all of these.
 
@@ -51,6 +59,8 @@ The result is a set of recurring operational failures:
 - **Every regulated domain rebuilds the same foundation.** The insurance team builds intake, routing, governance, and audit. The lending team builds the same things with different names. Each rebuild carries the same failure modes.
 
 The consequence is slow review cycles, inconsistent explanations, weak traceability, and compounding cost every time a new regulated workflow needs to be added.
+
+---
 
 ## How this architecture addresses it
 
@@ -66,76 +76,6 @@ The structural answer is to separate the platform from the domain. The platform 
 | Business and technical views diverge | The UI has three persona modes: Business (outcomes and plain-language rationale), Technical (schemas, layer timings, traces, costs), and Side-by-side. Same data, different lens. |
 | Every domain rebuilds the same platform | Domain adapters plug into one L0–L9 runtime path through a typed `DomainAdapter` protocol. No platform module imports domain-specific code. Adding a domain is an adapter implementation, not a platform change. |
 | Real services block local development | `APP_MODE=local_sync` runs the full decision path with SQLite and Ollama — no external service dependencies. Live services activate through environment configuration. |
-
----
-
-## Technology stack
-
-### Core platform
-
-| Category | Technology | Role |
-|---|---|---|
-| Language | Python 3.12 | Primary backend language |
-| API framework | FastAPI | All API surfaces — REST and SSE streaming |
-| Data validation | Pydantic v2 | Typed schemas at every layer boundary |
-| Agent orchestration | LangGraph | StateGraph with typed `OrchestratorState` — conditional routing, node-level execution |
-| LLM inference | LiteLLM + Ollama | Multi-provider abstraction — mock, local, and hosted paths |
-| Context protocol | Python MCP SDK | Model Context Protocol — abstract vendor system interfaces |
-| Async runtime | Python asyncio | Parallel MCP source assembly via `asyncio.gather` |
-| Packaging | pyproject.toml + uv | Dependency management and build |
-
-### Data and persistence
-
-| Category | Technology | Role |
-|---|---|---|
-| Local store | SQLite | Default local runtime — audit, workbench, DLQ, costs, models, Playbook runs |
-| Live store | PostgreSQL + asyncpg | Live service path — same schema, async connections |
-| Migrations | Custom migration runner | `make migrate` applies schema against configured backend |
-| Model registry | MLflow | Model metadata, artifact storage, stage promotion, shadow mode |
-| Event stream | Redis Streams | Live submission stream, DLQ, pending inspection |
-
-### AI and machine learning
-
-| Category | Technology | Role |
-|---|---|---|
-| LLM providers | Ollama · OpenAI · Anthropic · LiteLLM | Rationale generation — deterministic fallback when unavailable |
-| Local models | llama3.1 (default) | Default Ollama model for agent explanation generation |
-| ML training | scikit-learn · gradient boosting · MLflow pyfunc | Regulated tabular scoring — risk, credit, criteria, suitability |
-| Optional runtimes | XGBoost · LightGBM · ONNX · PyTorch · TensorFlow | Advanced local scoring via MLflow model families |
-| Model governance | MLflow stage promotion | Staging → Production with shadow comparison and rollback |
-| Deterministic fallback | Rules-based scoring | Always available when no promoted MLflow model exists |
-
-### Observability and operations
-
-| Category | Technology | Role |
-|---|---|---|
-| Metrics | Prometheus | Counter, histogram, and gauge metrics across all platform layers |
-| Dashboards | Grafana | Operational dashboards — submission volume, escalation rate, cost, latency |
-| Tracing | OpenTelemetry + Jaeger | Distributed trace spans — MCP calls, agent execution, governance, audit |
-| LLM cost tracking | Custom cost tracker | Token cost per agent run, per domain — persisted to data store |
-| Health checks | FastAPI health endpoint | Database, Redis, and MLflow availability at `/health` |
-| Log structure | structlog | Structured JSON logging with trace correlation |
-
-### Frontend
-
-| Category | Technology | Role |
-|---|---|---|
-| Framework | React 18 + Vite | Enterprise workbench UI |
-| Language | TypeScript | Typed API client and component contracts |
-| Charts | Recharts | Analytics, confidence distributions, cost trends, approval rates |
-| Streaming | EventSource (SSE) | Real-time layer execution events in Playbook Studio |
-| Styling | Tailwind CSS | Utility-first enterprise design system |
-
-### Developer experience
-
-| Category | Technology | Role |
-|---|---|---|
-| Linting | ruff | Python lint and format |
-| Type checking | mypy | Static type enforcement |
-| Testing | pytest + pytest-asyncio + pytest-cov | 80% coverage gate — all tests run on mock path |
-| CI | GitHub Actions | lint → typecheck → test on every push and PR |
-| Containers | Docker + docker-compose | Local open-source service stack |
-| Kafka topology | docker-compose.kafka.yml | Production-style event stream topology (optional) |
 
 ---
 
@@ -210,8 +150,6 @@ Proof:
 pytest tests/test_domain_protocol.py -v
 ```
 
-This test asserts that all four adapters satisfy the `DomainAdapter` protocol and that no platform module contains domain-specific imports.
-
 | Domain | Agent sequence | Escalation defaults | Governance source |
 |---|---|---|---|
 | insurance | triage → risk_scoring → appetite_check | confidence 0.75 · value $1M · mandatory: surplus_lines | `domains/insurance/governance/` |
@@ -250,7 +188,7 @@ submission:
   prior_claims: 1
 ```
 
-Starter templates are in `static/playbook_templates/`. Download a template, fill in the `submission:` section, upload it to Playbook Studio, and run.
+Twenty starter templates are in `static/playbook_templates/`. Download a template, fill in the `submission:` section, upload it to Playbook Studio, and run.
 
 **Playbook API:**
 
@@ -285,6 +223,18 @@ LLM_PROVIDER=ollama
 OLLAMA_MODEL=llama3.1
 ```
 
+Real-mode MCP connectors are configured through source-specific URL templates. Each template receives escaped `{domain}` and `{entity_id}` values and must return a JSON object.
+
+```
+APP_MODE=real
+MCP_CORE_URL_TEMPLATE=https://core.example.com/{domain}/entities/{entity_id}
+MCP_HISTORY_URL_TEMPLATE=https://history.example.com/{domain}/entities/{entity_id}/history
+MCP_EXTERNAL_URL_TEMPLATE=https://external.example.com/{domain}/entities/{entity_id}/external
+MCP_API_KEY=shared-token
+```
+
+Source-specific keys such as `MCP_CORE_API_KEY`, `MCP_HISTORY_API_KEY`, and `MCP_EXTERNAL_API_KEY` override `MCP_API_KEY`. Missing or failing real connectors flow through the existing context-confidence path, which routes incomplete context to human review instead of crashing the decision graph.
+
 ---
 
 ## Live service path
@@ -312,9 +262,36 @@ make docker-down    # stop services
 ```bash
 # Train and register a local model
 make train-model DOMAIN=insurance MODEL_TYPE=risk VERSION=local-1 STAGE=Staging FAMILY=sklearn
+
+# Train and register local synthetic Production models for non-insurance domains
+make train-domain-models
+
+# Train app-oriented open-source runtime models for non-insurance domains
+make train-app-domain-models
+
+# Or train and smoke-test them one by one
+make train-app-lending-onnx
+make smoke-app-lending-onnx
+make train-app-healthcare-torch
+make smoke-app-healthcare-torch
+make train-app-wealth-tensorflow
+make smoke-app-wealth-tensorflow
+
+# Train and score the app-oriented runtime models end to end
+make smoke-app-domain-models
 ```
 
-Supported training families: `sklearn`, `gradient_boosting`, `pyfunc`, `xgboost` (optional), `lightgbm` (optional), `onnx` (optional), `torch` (optional).
+Supported training families: `sklearn`, `gradient_boosting`, `pyfunc`, `xgboost` (optional), `lightgbm` (optional), `onnx` (optional), `torch` (optional), `tensorflow` (optional). Local synthetic profiles exist for `lending/credit`, `healthcare/criteria`, and `wealth/suitability` — useful for smoke testing model routing, not substitutes for governed production training datasets.
+
+The app-oriented non-insurance model line uses open-source runtimes:
+
+| Domain | Model type | App runtime family | Default version |
+|---|---|---|---|
+| Lending | `credit` | `onnx` | `onnx-1` |
+| Healthcare | `criteria` | `torch` | `torch-1` |
+| Wealth | `suitability` | `tensorflow` | `tensorflow-1` |
+
+Keep `make train-domain-models` on `sklearn` for local/test smoke runs. Use `make train-app-domain-models` or `make smoke-app-domain-models` only in environments with the optional runtime packages installed: `skl2onnx` and `onnxruntime` for ONNX, `torch` for Torch, and `tensorflow` for TensorFlow. Install with `uv sync --extra app-models`.
 
 No model is required for the application to run. Deterministic rules fallback is always available. Model registration, promotion, and rollback events write append-only audit records.
 
@@ -333,6 +310,76 @@ The React workbench at `ui/` is an enterprise decisioning interface with Busines
 | Architecture | L0–L9 platform flow with persona views and layer navigation |
 | Settings | Runtime config, provider selection, stream inspection, service links |
 | Operations | Health posture, model registry stage, last run, observability links |
+
+---
+
+## Technology stack
+
+### Core platform
+
+| Category | Technology | Role |
+|---|---|---|
+| Language | Python 3.12 | Primary backend language |
+| API framework | FastAPI | All API surfaces — REST and SSE streaming |
+| Data validation | Pydantic v2 | Typed schemas at every layer boundary |
+| Agent orchestration | LangGraph | StateGraph with typed `OrchestratorState` — conditional routing, node-level execution |
+| LLM inference | LiteLLM + Ollama | Multi-provider abstraction — mock, local, and hosted paths |
+| Context protocol | Python MCP SDK | Model Context Protocol — abstract vendor system interfaces |
+| Async runtime | Python asyncio | Parallel MCP source assembly via `asyncio.gather` |
+| Packaging | pyproject.toml + uv | Dependency management and build |
+
+### Data and persistence
+
+| Category | Technology | Role |
+|---|---|---|
+| Local store | SQLite | Default local runtime — audit, workbench, DLQ, costs, models, Playbook runs |
+| Live store | PostgreSQL + asyncpg | Live service path — same schema, async connections |
+| Migrations | Custom migration runner | `make migrate` applies schema against configured backend |
+| Model registry | MLflow | Model metadata, artifact storage, stage promotion, shadow mode |
+| Event stream | Redis Streams | Live submission stream, DLQ, pending inspection |
+
+### AI and machine learning
+
+| Category | Technology | Role |
+|---|---|---|
+| LLM providers | Ollama · OpenAI · Anthropic · LiteLLM | Rationale generation — deterministic fallback when unavailable |
+| Local models | llama3.1 (default) | Default Ollama model for agent explanation generation |
+| ML training | scikit-learn · gradient boosting · MLflow pyfunc | Regulated tabular scoring — risk, credit, criteria, suitability |
+| Optional runtimes | XGBoost · LightGBM · ONNX · PyTorch · TensorFlow | Advanced local scoring via MLflow model families |
+| Model governance | MLflow stage promotion | Staging → Production with shadow comparison and rollback |
+| Deterministic fallback | Rules-based scoring | Always available when no promoted MLflow model exists |
+
+### Observability and operations
+
+| Category | Technology | Role |
+|---|---|---|
+| Metrics | Prometheus | Counter, histogram, and gauge metrics across all platform layers |
+| Dashboards | Grafana | Operational dashboard — API/UI observability views; broader panel design is production hardening |
+| Tracing | OpenTelemetry + Jaeger | Distributed trace spans — MCP calls, agent execution, governance, audit |
+| LLM cost tracking | Custom cost tracker | Token cost per agent run, per domain — persisted to data store |
+| Health checks | FastAPI health endpoint | Database, Redis, and MLflow availability at `/health` |
+| Log structure | structlog | Structured JSON logging with trace correlation |
+
+### Frontend
+
+| Category | Technology | Role |
+|---|---|---|
+| Framework | React 19 + Vite | Enterprise workbench UI |
+| Language | TypeScript | Typed API client and component contracts |
+| Charts | Recharts | Analytics, confidence distributions, cost trends, approval rates |
+| Streaming | EventSource (SSE) | Real-time layer execution events in Playbook Studio |
+| Styling | Custom CSS | Enterprise shell, responsive panels, persona controls, and workflow states |
+
+### Developer experience
+
+| Category | Technology | Role |
+|---|---|---|
+| Linting | ruff | Python lint and format |
+| Type checking | mypy | Static type enforcement |
+| Testing | pytest + pytest-asyncio + pytest-cov | 80% coverage gate — all tests run on mock path |
+| CI | GitHub Actions | lint → typecheck → test on every push and PR |
+| Containers | Docker + docker-compose | Local open-source service stack |
+| Kafka topology | docker-compose.kafka.yml | Production-style event stream topology (optional) |
 
 ---
 
@@ -381,13 +428,26 @@ domains/                      Domain adapters, agents, governance YAML, MCP conf
 platform/                     Stream, orchestrator, MCP, governance, data, registry, observability
 static/playbook_templates/    Business-user Playbook templates per domain and case type
 ui/                           React enterprise workbench
-docs/                         Architecture HTML, UI design spec, Playbook spec, task definitions
+docs/                         Architecture HTML, UI design spec, Playbook spec
 docker-compose.yml            Local open-source service stack
 docker-compose.kafka.yml      Production-style Kafka stream topology (optional)
 ```
 
 ---
 
+## Implementation status
+
+The functional application path is complete: backend orchestration, Playbook validation/run/results/stream/history/downloads, domain adapters, mock and real-mode MCP connector contracts, local and live persistence, audit/workbench flows, model registry lifecycle events, observability hooks, demo CLI, and the React enterprise UI. Latest local verification: `make lint`, `make typecheck`, `make test` (80 tests, 85.01% coverage), `npm --prefix ui run build`, and `make demo` all pass.
+
+Production hardening items are non-blocking for the current application path:
+
+- Real connector URL templates and credentials are configured at deployment time, outside the repo.
+- Synthetic fixtures and local fallback scoring are placeholders — replace with governed production datasets when available.
+- Grafana dashboard has operational skeleton; broader panel design is an expansion item.
+- Browser-level visual regression coverage for the UI is not yet present.
+
+---
+
 ## Implementation boundaries
 
-Real external context connectors are intentionally absent from platform code. In `APP_MODE=real` the MCP server functions raise until connector credentials and implementations are provided at the deployment level. Kafka is available as an optional compose topology. The active application stream path is local sync, memory stream, or Redis Streams. Hosted LLM providers are opt-in via environment keys. Deterministic fallback remains the safe default throughout.
+Real external context connectors are platform-supported through deployment-level HTTP JSON URL templates; vendor-specific contracts and credentials stay outside the repo. Kafka is available as an optional compose topology, but the active application stream path is local sync, memory stream, or Redis Streams. Hosted LLM providers are opt-in via environment keys. Deterministic fallback is the safe default throughout.
