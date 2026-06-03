@@ -6,6 +6,8 @@ This guide walks through one end-to-end Playbook run and shows the API calls, re
 
 Dynamic values such as UUIDs, timestamps, and latency change on every run. The example responses below preserve the real response shape while using representative values.
 
+For implementation status and production hardening gaps, see `docs/planning/IMPLEMENTATION_STATUS.md`.
+
 ## Sample Use Case
 
 Use case: commercial property underwriting for an office building in San Francisco.
@@ -118,6 +120,8 @@ Representative response:
   }
 ]
 ```
+
+The repository currently includes 20 seeded YAML templates across insurance, lending, healthcare, and wealth workflows.
 
 ### 2. Fetch The Selected Template
 
@@ -364,9 +368,11 @@ The real response includes full `layer_events`, `rule_events`, and `audit_record
 | 2 | `GET` | `/api/v1/playbook/templates/{name}` | Fetch YAML for one template |
 | 3 | `POST` | `/api/v1/playbook/validate` | Validate YAML and domain submission rules |
 | 4 | `POST` | `/api/v1/playbook/run` | Execute context assembly, agents, governance, audit |
-| 5 | `GET` | `/api/v1/playbook/{submission_id}/results` | Fetch run summary, audit, rule events, layer events |
-| 6 | `GET` | `/api/v1/playbook/{submission_id}/audit-record` | Fetch raw audit package |
-| 7 | `GET` | `/api/v1/playbook/{submission_id}/report` | Fetch business and technical report package |
+| 5 | `GET` | `/api/v1/playbook/{submission_id}/stream` | Stream stored layer and rule events as SSE |
+| 6 | `GET` | `/api/v1/playbook/{submission_id}/results` | Fetch run summary, audit, rule events, layer events |
+| 7 | `GET` | `/api/v1/playbook/{submission_id}/audit-record` | Fetch raw audit package |
+| 8 | `GET` | `/api/v1/playbook/{submission_id}/report` | Fetch business and technical report package |
+| 9 | `GET` | `/api/v1/playbook/history` | Fetch recent persisted Playbook runs |
 
 ## Code Flow
 
@@ -492,3 +498,158 @@ The follow-up APIs read persisted and in-memory execution artifacts:
 - `/stream` emits the stored layer and rule events as server-sent events.
 
 This is why the `submission_id` returned by `/run` is the key used by every later API call.
+
+## Customization Guide
+
+The codebase is designed so business behavior changes start in `domains/` and `static/playbook_templates/`, while platform behavior stays in `platform/` and `api/`.
+
+| Change | Primary files | Notes |
+|---|---|---|
+| Add or edit a Playbook template | `static/playbook_templates/*.yaml` | Must satisfy `core/playbook_schema.py` and the selected domain adapter validation. |
+| Add a case type to an existing domain | `core/playbook_schema.py`, `domains/<domain>/adapter.py`, `domains/<domain>/agents.py` | Update `VALID_CASE_TYPES`, adapter `supported_case_types`, validation fields, and agent sequencing if the case needs a different sequence. |
+| Tune domain policy | `domains/<domain>/governance/*.yaml`, `domains/<domain>/adapter.py` | Governance YAML owns prohibited factors, disclosures, retention, and escalation overrides. Adapter thresholds own confidence/value/mandatory review defaults. |
+| Tune specialist logic | `domains/<domain>/agents.py` | Agents must return `AgentOutput` with evidence, flags, confidence, processing time, and a non-empty explanation. |
+| Configure real context systems | `.env`, `core/config.py`, `platform/mcp/connectors/real/__init__.py` | Real connectors use deployment-provided HTTP JSON URL templates. Secrets stay in environment variables, not code. |
+| Add or train model families | `scripts/train_local_model.py`, `scripts/smoke_app_domain_models.py`, `platform/registry/` | Optional runtimes require the `app-models` extra; deterministic fallback keeps the app runnable without models. |
+| Change UI workflow text or panels | `ui/src/App.tsx`, `ui/src/styles.css`, `ui/src/pages/*` | API contracts are typed in the React code and backed by FastAPI response models. |
+
+### Customize Playbooks
+
+A Playbook is a YAML contract parsed by `core/playbook_schema.py::parse_playbook_yaml`. The top-level sections are:
+
+- `playbook`: name, version, creator, and description.
+- `domain`: `name` and `case_type`.
+- `jurisdiction`: currently `US_CA`, `US_TX`, `US_NY`, `US_FL`, or `federal`.
+- `rules`: optional controls that can tighten thresholds or add mandatory review triggers.
+- `submission`: domain-owned business input.
+
+The platform deliberately merges Playbook rules conservatively:
+
+- `confidence_threshold` can make review stricter, not weaker.
+- `max_auto_decision_value` can lower the auto-decision ceiling, not raise it above the domain default.
+- `mandatory_review_triggers` append to domain governance overrides.
+- `prohibited_factors` append to jurisdiction policy.
+
+After schema parsing, the selected adapter validates the `submission` fields. For example, lending `auto_loan` requires `annual_income`, `employment_type`, `years_employed`, `monthly_debt_obligations`, `requested_loan_amount`, `vehicle_year`, `vehicle_type`, `prior_derogatory_marks`, and `months_credit_history`.
+
+### Customize An Existing Domain
+
+Each domain adapter implements `domains/base.py::DomainAdapter`.
+
+For an existing domain, the usual workflow is:
+
+1. Update `supported_case_types` and `get_agent_sequence` in `domains/<domain>/adapter.py`.
+2. Update `validate_submission` so Playbook uploads fail fast on missing or invalid business inputs.
+3. Update `get_escalation_thresholds` when the domain review thresholds change.
+4. Update or add governance YAML under `domains/<domain>/governance/`.
+5. Update `domains/<domain>/agents.py` so each agent in the sequence can run and return a valid `AgentOutput`.
+6. Add or update seeded templates under `static/playbook_templates/`.
+7. Add tests in `tests/test_playbook_schema.py`, `tests/test_domain_agents.py`, or a domain-specific test.
+
+Agent modules can expose either an `AGENTS` map whose objects implement `run(context, prior_outputs)`, or a module-level `run_agent(name, context, prior_outputs)` function. The orchestrator supports both. Insurance currently uses the `AGENTS` map style; lending, healthcare, and wealth use `run_agent`.
+
+Keep these invariants intact:
+
+- Platform and API modules must not import domain-specific policy logic directly.
+- Public layer boundaries should use Pydantic models, not ad hoc dict contracts.
+- `AgentOutput.explanation` is required and must be meaningful enough for audit and reviewer workflows.
+- If an agent uses a factor prohibited by governance, governance should detect it through evidence fields.
+- Human review should be triggered through confidence, flags, value thresholds, mandatory cases, or governance overrides, not through hidden platform branching.
+
+### Add A New Domain
+
+The current typed application supports four domain ids: `insurance`, `lending`, `healthcare`, and `wealth`. Adding a fifth domain is supported by the architecture, but it requires updating the typed allowlists as well as adding the plugin files.
+
+Minimum code changes:
+
+1. Add `domains/<new_domain>/adapter.py`, `agents.py`, and `governance/*.yaml`.
+2. Implement the `DomainAdapter` protocol from `domains/base.py`.
+3. Register the adapter in `domains/registry.py`.
+4. Add the new domain id to `core/schemas.py::DomainId`.
+5. Add its case types to `core/playbook_schema.py::VALID_CASE_TYPES`.
+6. Add supported jurisdictions to `PlaybookJurisdiction` if the domain needs jurisdictions outside the current literals.
+7. Add seeded Playbook templates under `static/playbook_templates/`.
+8. Add tests proving the adapter validates, the Playbook parses, and the agents return valid outputs.
+
+Run `pytest tests/test_domain_protocol.py -v` after registration. That test is the guardrail that the domain still plugs into the platform through the adapter contract.
+
+### Customize Real MCP Connectors
+
+The mock/local path is the default. In `APP_MODE=real`, core, history, and external context sources call URL templates configured through environment variables:
+
+```text
+APP_MODE=real
+MCP_CORE_URL_TEMPLATE=https://core.example.com/{domain}/entities/{entity_id}
+MCP_HISTORY_URL_TEMPLATE=https://history.example.com/{domain}/entities/{entity_id}/history
+MCP_EXTERNAL_URL_TEMPLATE=https://external.example.com/{domain}/entities/{entity_id}/external
+MCP_API_KEY=shared-token
+```
+
+Source-specific keys `MCP_CORE_API_KEY`, `MCP_HISTORY_API_KEY`, and `MCP_EXTERNAL_API_KEY` override `MCP_API_KEY`. Each connector must return a JSON object. The real connector client escapes `{domain}` and `{entity_id}`, adds a bearer token when configured, and raises a connector error if the endpoint is unavailable, returns non-2xx, invalid JSON, or a non-object payload.
+
+Context assembly is intentionally tolerant. `platform/mcp/assembler.py` gathers the three sources and converts missing sources into `UnifiedContext.sources_missing`. If a Playbook upload has no core connector result, the raw Playbook submission becomes the core context so local business testing can still run.
+
+### Customize Models
+
+Model scoring is optional. The application runs without registered MLflow models because deterministic fallback scoring is always available.
+
+Use these commands when you want model-backed smoke paths:
+
+```bash
+make train-model DOMAIN=insurance MODEL_TYPE=risk VERSION=local-1 STAGE=Staging FAMILY=sklearn
+make train-domain-models
+make smoke-app-domain-models
+```
+
+Supported `FAMILY` values are `sklearn`, `gradient_boosting`, `pyfunc`, and optional `xgboost`, `lightgbm`, `onnx`, `torch`, and `tensorflow`. Install optional runtime families with:
+
+```bash
+uv sync --extra app-models
+```
+
+The local synthetic data in `scripts/train_local_model.py` is for development and smoke testing. Replace it with governed production feature pipelines and model artifacts before using these paths for real decisioning.
+
+### Customize Runtime And UI
+
+Runtime behavior is environment-driven through `core/config.py` and surfaced through:
+
+```text
+GET  /api/v1/config
+POST /api/v1/config/runtime
+GET  /api/v1/streams/inspection
+```
+
+The runtime config API is intentionally process-local. It is useful for the UI Settings page and demos; it does not write `.env` files or secrets.
+
+The UI shell is in `ui/src/App.tsx`, with CSS in `ui/src/styles.css` and page modules under `ui/src/pages/`. When changing UI behavior, keep API payload shapes aligned with the Pydantic response models in `api/routers/*.py`.
+
+## Verification For Developers
+
+Run these before committing implementation changes:
+
+```bash
+make lint
+make typecheck
+make test
+npm --prefix ui run build
+```
+
+Useful focused checks:
+
+```bash
+pytest tests/test_domain_protocol.py -v
+pytest tests/test_playbook_schema.py -v
+pytest tests/test_domain_agents.py -v
+pytest tests/test_real_mcp_connectors.py -v
+```
+
+For live infrastructure paths:
+
+```bash
+make docker-up
+make migrate
+make live-smoke
+make docker-down
+```
+
+Keep `APP_MODE=mock` and `LLM_PROVIDER=mock` for isolated CI-style runs. Use `APP_MODE=local_sync` for local Playbook demos, and `APP_MODE=real` only when connector templates and live services are configured.

@@ -437,7 +437,7 @@ docker-compose.kafka.yml      Production-style Kafka stream topology (optional)
 
 ## Implementation status
 
-The functional application path is complete: backend orchestration, Playbook validation/run/results/stream/history/downloads, domain adapters, mock and real-mode MCP connector contracts, local and live persistence, audit/workbench flows, model registry lifecycle events, observability hooks, demo CLI, and the React enterprise UI. Latest local verification: `make lint`, `make typecheck`, `make test` (80 tests, 85.01% coverage), `npm --prefix ui run build`, and `make demo` all pass.
+The functional application path is complete: backend orchestration, Playbook validation/run/results/stream/history/downloads, domain adapters, mock and real-mode MCP connector contracts, local and live persistence, audit/workbench flows, model registry lifecycle events, observability hooks, demo CLI, and the React enterprise UI. See the [Developer Guide](docs/DEVELOPER_GUIDE.md) for the current request flow and customization points. Latest local verification: `make lint`, `make typecheck`, `make test` (80 tests, 85.01% coverage), `npm --prefix ui run build`, and `make demo` all pass.
 
 Production hardening items are non-blocking for the current application path:
 
