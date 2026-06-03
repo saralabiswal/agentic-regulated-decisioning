@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from platform.mcp.connectors.real import fetch_context
 from platform.mcp.fixtures import get_fixture
 
 from core.config import get_settings
@@ -11,9 +12,7 @@ from core.config import get_settings
 async def get_entity(submission_id: str, domain: str) -> dict:
     """Return core entity data for MCP callers."""
     if get_settings().app_mode == "real":
-        raise NotImplementedError(
-            "Configure real connector credentials in .env for the selected core system."
-        )
+        return await fetch_context("core", submission_id, domain)
     return get_fixture(domain, submission_id)["core"]
 
 

@@ -44,6 +44,14 @@ class Settings(BaseSettings):
     llm_api_key: str = Field("", alias="LLM_API_KEY")
     llm_base_url: str = Field("", alias="LLM_BASE_URL")
     llm_timeout_seconds: float = Field(2.0, alias="LLM_TIMEOUT_SECONDS")
+    mcp_timeout_seconds: float = Field(2.0, alias="MCP_TIMEOUT_SECONDS")
+    mcp_api_key: str = Field("", alias="MCP_API_KEY")
+    mcp_core_url_template: str = Field("", alias="MCP_CORE_URL_TEMPLATE")
+    mcp_core_api_key: str = Field("", alias="MCP_CORE_API_KEY")
+    mcp_history_url_template: str = Field("", alias="MCP_HISTORY_URL_TEMPLATE")
+    mcp_history_api_key: str = Field("", alias="MCP_HISTORY_API_KEY")
+    mcp_external_url_template: str = Field("", alias="MCP_EXTERNAL_URL_TEMPLATE")
+    mcp_external_api_key: str = Field("", alias="MCP_EXTERNAL_API_KEY")
     ollama_base_url: str = Field("http://localhost:11434", alias="OLLAMA_BASE_URL")
     ollama_model: str = Field("llama3.1", alias="OLLAMA_MODEL")
     openai_model: str = Field("openai/gpt-4o-mini", alias="OPENAI_MODEL")
@@ -54,18 +62,27 @@ class Settings(BaseSettings):
     default_jurisdiction: str = Field("US_CA", alias="DEFAULT_JURISDICTION")
     cors_origins: str = Field("", alias="CORS_ORIGINS")
 
-    def public_dict(self) -> dict[str, str | None]:
+    def public_dict(self) -> dict[str, object]:
         """Expose non-secret runtime settings to the UI and settings API."""
         data = self.model_dump()
         data.pop("llm_api_key", None)
         data.pop("openai_api_key", None)
         data.pop("anthropic_api_key", None)
+        data.pop("mcp_api_key", None)
+        data.pop("mcp_core_api_key", None)
+        data.pop("mcp_history_api_key", None)
+        data.pop("mcp_external_api_key", None)
         data["llm_provider_status"] = {
             "selected": self.llm_provider,
             "openai_configured": bool(self.openai_api_key),
             "anthropic_configured": bool(self.anthropic_api_key),
             "custom_configured": bool(self.llm_model and self.llm_api_key),
             "ollama_configured": bool(self.ollama_base_url),
+        }
+        data["mcp_connector_status"] = {
+            "core_configured": bool(self.mcp_core_url_template),
+            "history_configured": bool(self.mcp_history_url_template),
+            "external_configured": bool(self.mcp_external_url_template),
         }
         return data
 

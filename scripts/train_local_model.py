@@ -38,8 +38,62 @@ def _configure_mlflow() -> Any:
     return mlflow
 
 
-def _synthetic_training_data() -> tuple[Any, Any]:
+def _synthetic_training_data(
+    domain: str = "insurance",
+    model_type: str = "risk",
+) -> tuple[Any, Any]:
+    """Return local synthetic data shaped to the requested domain scorer.
+
+    Feature order is defined by ``FEATURE_COLUMNS``:
+    case_value, confidence_hint, history_risk, external_risk.
+    """
     import numpy as np
+
+    profiles = {
+        ("lending", "credit"): (
+            [
+                [0.02, 0.88, 0.15, 0.18],
+                [0.04, 0.82, 0.20, 0.22],
+                [0.06, 0.72, 0.30, 0.35],
+                [0.12, 0.68, 0.40, 0.42],
+                [0.18, 0.45, 0.65, 0.62],
+                [0.35, 0.40, 0.72, 0.70],
+                [0.65, 0.38, 0.80, 0.74],
+                [0.08, 0.30, 0.76, 0.82],
+            ],
+            [0, 0, 0, 0, 1, 1, 1, 1],
+        ),
+        ("healthcare", "criteria"): (
+            [
+                [0.01, 0.92, 0.20, 0.10],
+                [0.03, 0.88, 0.25, 0.12],
+                [0.08, 0.80, 0.28, 0.22],
+                [0.18, 0.74, 0.35, 0.30],
+                [0.05, 0.35, 0.55, 0.72],
+                [0.12, 0.30, 0.62, 0.78],
+                [0.38, 0.42, 0.70, 0.82],
+                [0.52, 0.36, 0.76, 0.88],
+            ],
+            [0, 0, 0, 0, 1, 1, 1, 1],
+        ),
+        ("wealth", "suitability"): (
+            [
+                [0.05, 0.90, 0.25, 0.20],
+                [0.12, 0.84, 0.30, 0.30],
+                [0.20, 0.76, 0.38, 0.42],
+                [0.35, 0.70, 0.45, 0.48],
+                [0.18, 0.36, 0.55, 0.72],
+                [0.30, 0.32, 0.62, 0.80],
+                [0.55, 0.42, 0.70, 0.86],
+                [0.75, 0.38, 0.78, 0.90],
+            ],
+            [0, 0, 0, 0, 1, 1, 1, 1],
+        ),
+    }
+    profile = profiles.get((domain, model_type))
+    if profile:
+        x_values, y_values = profile
+        return np.array(x_values), np.array(y_values)
 
     x = np.array(
         [
@@ -66,22 +120,22 @@ def _save_sklearn_compatible_model(mlflow: Any, model: Any) -> None:
         mlflow.log_artifacts(str(model_path), artifact_path="model")
 
 
-def _train_sklearn(logistic: bool = True) -> Any:
+def _train_sklearn(domain: str, model_type: str, logistic: bool = True) -> Any:
     from sklearn.ensemble import GradientBoostingClassifier
     from sklearn.linear_model import LogisticRegression
 
-    x, y = _synthetic_training_data()
+    x, y = _synthetic_training_data(domain, model_type)
     model = LogisticRegression() if logistic else GradientBoostingClassifier(random_state=7)
     return model.fit(x, y)
 
 
-def _train_xgboost() -> Any:
+def _train_xgboost(domain: str, model_type: str) -> Any:
     try:
         from xgboost import XGBClassifier
     except ImportError as exc:
         raise RuntimeError("Install xgboost locally to train model_family=xgboost.") from exc
 
-    x, y = _synthetic_training_data()
+    x, y = _synthetic_training_data(domain, model_type)
     model = XGBClassifier(
         n_estimators=20,
         max_depth=2,
@@ -92,13 +146,13 @@ def _train_xgboost() -> Any:
     return model.fit(x, y)
 
 
-def _train_lightgbm() -> Any:
+def _train_lightgbm(domain: str, model_type: str) -> Any:
     try:
         from lightgbm import LGBMClassifier
     except ImportError as exc:
         raise RuntimeError("Install lightgbm locally to train model_family=lightgbm.") from exc
 
-    x, y = _synthetic_training_data()
+    x, y = _synthetic_training_data(domain, model_type)
     model = LGBMClassifier(n_estimators=20, max_depth=2, learning_rate=0.2, random_state=7)
     return model.fit(x, y)
 
@@ -155,7 +209,7 @@ class OnnxRiskPyFunc(PythonModel):
         return results
 
 
-def _save_onnx_model(mlflow: Any) -> None:
+def _save_onnx_model(mlflow: Any, domain: str, model_type: str) -> None:
     try:
         from skl2onnx import convert_sklearn
         from skl2onnx.common.data_types import FloatTensorType
@@ -164,7 +218,7 @@ def _save_onnx_model(mlflow: Any) -> None:
             "Install skl2onnx and onnxruntime locally to train model_family=onnx."
         ) from exc
 
-    model = _train_sklearn()
+    model = _train_sklearn(domain, model_type)
     onnx_model = convert_sklearn(
         model,
         initial_types=[("features", FloatTensorType([None, len(FEATURE_COLUMNS)]))],
@@ -198,13 +252,13 @@ class TorchRiskPyFunc(PythonModel):
         return [{"score": float(score)} for score in scores]
 
 
-def _save_torch_model(mlflow: Any) -> None:
+def _save_torch_model(mlflow: Any, domain: str, model_type: str) -> None:
     try:
         import torch
     except ImportError as exc:
         raise RuntimeError("Install torch locally to train model_family=torch.") from exc
 
-    x, y = _synthetic_training_data()
+    x, y = _synthetic_training_data(domain, model_type)
     tensor_x = torch.tensor(x, dtype=torch.float32)
     tensor_y = torch.tensor(y.reshape(-1, 1), dtype=torch.float32)
     model = torch.nn.Sequential(torch.nn.Linear(len(FEATURE_COLUMNS), 1), torch.nn.Sigmoid())
@@ -236,13 +290,13 @@ class TensorFlowRiskPyFunc(PythonModel):
         return [{"score": float(score)} for score in scores]
 
 
-def _save_tensorflow_model(mlflow: Any) -> None:
+def _save_tensorflow_model(mlflow: Any, domain: str, model_type: str) -> None:
     try:
         import tensorflow as tensor_flow
     except ImportError as exc:
         raise RuntimeError("Install tensorflow locally to train model_family=tensorflow.") from exc
 
-    x, y = _synthetic_training_data()
+    x, y = _synthetic_training_data(domain, model_type)
     model = tensor_flow.keras.Sequential(
         [
             tensor_flow.keras.layers.Input(shape=(len(FEATURE_COLUMNS),)),
@@ -272,23 +326,27 @@ def train_and_register(
         mlflow.log_param("domain", domain)
         mlflow.log_param("model_type", model_type)
         mlflow.log_param("model_family", model_family)
+        mlflow.log_param("synthetic_profile", f"{domain}.{model_type}")
         mlflow.log_param("feature_columns", ",".join(FEATURE_COLUMNS))
         if model_family == "sklearn":
-            _save_sklearn_compatible_model(mlflow, _train_sklearn())
+            _save_sklearn_compatible_model(mlflow, _train_sklearn(domain, model_type))
         elif model_family == "gradient_boosting":
-            _save_sklearn_compatible_model(mlflow, _train_sklearn(logistic=False))
+            _save_sklearn_compatible_model(
+                mlflow,
+                _train_sklearn(domain, model_type, logistic=False),
+            )
         elif model_family == "xgboost":
-            _save_sklearn_compatible_model(mlflow, _train_xgboost())
+            _save_sklearn_compatible_model(mlflow, _train_xgboost(domain, model_type))
         elif model_family == "lightgbm":
-            _save_sklearn_compatible_model(mlflow, _train_lightgbm())
+            _save_sklearn_compatible_model(mlflow, _train_lightgbm(domain, model_type))
         elif model_family == "pyfunc":
             _save_pyfunc_model(mlflow, WeightedRiskPyFunc())
         elif model_family == "onnx":
-            _save_onnx_model(mlflow)
+            _save_onnx_model(mlflow, domain, model_type)
         elif model_family == "torch":
-            _save_torch_model(mlflow)
+            _save_torch_model(mlflow, domain, model_type)
         elif model_family == "tensorflow":
-            _save_tensorflow_model(mlflow)
+            _save_tensorflow_model(mlflow, domain, model_type)
         else:
             raise ValueError(f"Unsupported model_family: {model_family}")
         run_id = run.info.run_id

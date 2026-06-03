@@ -37,6 +37,12 @@ dev = [
     "httpx",
     "fakeredis",
 ]
+app-models = [
+    "skl2onnx",
+    "onnxruntime",
+    "torch",
+    "tensorflow",
+]
 
 [project.scripts]
 regulated-decisioning-api = "api.main:app"

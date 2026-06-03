@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from platform.mcp.connectors.real import fetch_context
 from platform.mcp.fixtures import get_fixture
 
 from core.config import get_settings
@@ -11,9 +12,7 @@ from core.config import get_settings
 async def get_bureau_data(entity_id: str, domain: str) -> dict:
     """Return deterministic bureau-style enrichment for an entity."""
     if get_settings().app_mode == "real":
-        raise NotImplementedError(
-            "Configure real connector credentials in .env -- see README for external data setup."
-        )
+        return await fetch_context("external", entity_id, domain)
     return get_fixture(domain, entity_id)["external"]
 
 
